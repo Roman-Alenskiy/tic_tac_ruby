@@ -1,10 +1,11 @@
 class Game
-	attr_accessor :player1, :player2, :cells
+	attr_accessor :player1, :player2, :cells, :draw_marker
 
 	def initialize
 		@cells = {  "a1" => " ", "a2" => " ", "a3" => " ",
 					"b1" => " ", "b2" => " ", "b3" => " ",
 					"c1" => " ", "c2" => " ", "c3" => " "  }
+		@draw_marker = 0
 	end
 
 	def show_grid
@@ -33,7 +34,7 @@ class Game
 			flag = true if @cells[cell] == " "
 			if flag
 				step(cell)
-			elsif /^[abcABC][123]$/ === cell
+			elsif cell =~ /^[abcABC][123]$/
 				print "#{cell} is already taken!\n"
 			else
 				print "Wrong cell!\n"
@@ -42,40 +43,45 @@ class Game
 	end
 
 	def win_check
-		array_of_as = [@active_symbol] * 3
-		condition = (([@cells["a1"], @cells["a2"], @cells["a3"]]) == array_of_as ||
-					([@cells["b1"], @cells["b2"], @cells["b3"]]) == array_of_as ||
-					([@cells["c1"], @cells["c2"], @cells["c3"]]) == array_of_as ||
-					([@cells["a1"], @cells["b1"], @cells["c1"]]) == array_of_as ||
-					([@cells["a2"], @cells["b2"], @cells["c2"]]) == array_of_as ||
-					([@cells["a3"], @cells["b3"], @cells["c3"]]) == array_of_as ||
-					([@cells["a1"], @cells["b2"], @cells["c3"]]) == array_of_as ||
-					([@cells["a3"], @cells["b2"], @cells["c1"]]) == array_of_as)
+		# array_of_active_symbols == ["X","X","X"] or ["O","O","O"] in dependence of @active_symbol
+		array_of_active_symbols = [@active_symbol] * 3 
+		condition = (([@cells["a1"], @cells["a2"], @cells["a3"]]) == array_of_active_symbols ||
+					([@cells["b1"], @cells["b2"], @cells["b3"]]) == array_of_active_symbols ||
+					([@cells["c1"], @cells["c2"], @cells["c3"]]) == array_of_active_symbols ||
+					([@cells["a1"], @cells["b1"], @cells["c1"]]) == array_of_active_symbols ||
+					([@cells["a2"], @cells["b2"], @cells["c2"]]) == array_of_active_symbols ||
+					([@cells["a3"], @cells["b3"], @cells["c3"]]) == array_of_active_symbols ||
+					([@cells["a1"], @cells["b2"], @cells["c3"]]) == array_of_active_symbols ||
+					([@cells["a3"], @cells["b2"], @cells["c1"]]) == array_of_active_symbols)
 		if 	condition
 			print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
 			print "\n"
 			print "   #{@active_player} win! Congratz!   \n"
 			print "\n"
 			print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n"
-			print "Start new game? [y/n]\n"
 
-			loop do
-				next_game = gets.chomp
-				next_game.downcase!
-				if /^[yn]$/ === next_game
-					restart if next_game == "y"
-					abort if next_game == "n"
-				else
-					print "Wrong answer!\n"
-				end
-			end
+			new_game
+		end
+	end
+
+	def draw_check(draw_marker)
+		if draw_marker == 9
+			print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+			print "\n"
+			print "                DRAW!   \n"
+			print "\n"
+			print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n"
+
+			new_game
 		end
 	end
 
 	def step(cell)
 		cell.downcase!
 		@cells[cell] = @active_symbol
+		@draw_marker += 1
 		show_grid
+		draw_check(@draw_marker)
 		win_check
 		switch_player
 	end
@@ -110,6 +116,20 @@ class Game
 		print "=================\n\n"
 		show_grid
 		cells_handler
+	end
+
+	def new_game
+		print "Start new game? [y/n]\n"
+		loop do
+			new_game = gets.chomp
+			new_game.downcase!
+			if new_game =~ /^[yn]$/
+				restart if new_game == "y"
+				exit if new_game == "n"
+			else
+				print "Wrong answer!\n"
+			end
+		end
 	end
 
 	def create_players
